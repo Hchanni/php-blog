@@ -1,3 +1,26 @@
+<?php
+
+// Work out the path to the database, so SQLite/PDO can connect
+$root = __DIR__;
+$database = $root . '/data/data.sqlite';
+$dsn = 'sqlite:' . $database;
+
+// Connect to the database, run a query, handle errors
+$pdo = new PDO($dsn);
+$stmt = $pdo->query(
+    'SELECT
+        id, title, created_at, body
+    FROM
+        post
+    ORDER BY
+        created_at DESC'
+);
+if ($stmt === false)
+{
+    throw new Exception('There was a problem running this query');
+}
+
+?>
 <!DOCTYPE html>
 <html>
     <head>
@@ -5,13 +28,25 @@
         <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     </head>
     <body>
-    <?php for ($postId = 1; $postId <= 3; $postId++): ?>
-            <h2>Article <?php echo $postId ?> title</h2>
-            <div>dd Mon YYYY</div>
-            <p>A paragraph summarising article <?php echo $postId ?>.</p>
+        <h1>Blog title</h1>
+        <p>This paragraph summarises what the blog is about.</p>
+
+        <?php while ($row = $stmt->fetch(PDO::FETCH_ASSOC)): ?>
+            <h2>
+                <?php echo htmlspecialchars($row['title'], ENT_HTML5, 'UTF-8') ?>
+            </h2>
+            <div>
+                <?php echo $row['created_at'] ?>
+            </div>
             <p>
-                <a href="#">Read more...</a>
+                <?php echo htmlspecialchars($row['body'], ENT_HTML5, 'UTF-8') ?>
             </p>
-        <?php endfor ?>
+            <p>
+                <a
+                    href="view-post.php?post_id=<?php echo $row['id'] ?>"
+                >Read more...</a>
+            </p>
+        <?php endwhile ?>
+
     </body>
 </html>
